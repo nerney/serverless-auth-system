@@ -1,7 +1,7 @@
-service: serverless-auth-system
-# Provider config
+service: nern-auth
+
 provider:
-  name: AWS
+  name: aws
   runtime: nodejs8.10
   memorySize: 128
   timeout: 30
@@ -14,31 +14,36 @@ provider:
         - dynamodb:DeleteItem
       Resource: "*"
 
-# FUNCTIONS
 functions:
-  authorizer:
-    handler: auth/authorizer.handler
-  login:
-    handler: auth/login.handler
-    events:
-      - http:
-          path: login
-          method: post
   signup:
     handler: auth/signup.handler
     events:
       - http:
           path: signup
           method: post
+  login:
+    handler: auth/login.handler
+    events:
+      - http:
+          path: login
+          method: post
+  logout:
+    handler: auth/logout.handler
+    events:
+      - http:
+          path: login
+          method: get
+
+  authorizer:
+    handler: auth/authorizer.handler
   greetings:
     handler: pages/greetings.handler
     events:
       - http:
           path: greetings
           method: get
+          authorizer: ${self:custom.authorizer}
 
-# DYNAMO TABLES
-#   feel free to provision more throughput
 resources:
   Resources:
     sessionTable:
@@ -68,8 +73,19 @@ resources:
           - AttributeName: username
             AttributeType: S
         KeySchema:
-          - AttributeName: id
+          - AttributeName: username
             KeyType: HASH
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
+
+plugins:
+  - serverless-prune-plugin
+custom:
+  authorizer:
+    name: authorizer
+    identitySource: method.request.header.Cookie
+    type: REQUEST
+  prune:
+    automatic: true
+    number: 2

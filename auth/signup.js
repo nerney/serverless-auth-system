@@ -11,7 +11,7 @@ module.exports.handler = async event => {
         TableName: "users",
         Key: { username: username }
       }).promise();
-      if (result.Item.password) {
+      if (result.Item && result.Item.password) {
         return { statusCode: 409 };
       }
 
