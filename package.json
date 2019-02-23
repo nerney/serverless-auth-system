@@ -1,7 +1,15 @@
 {
   "private": true,
   "scripts": {
-    "deploy": "bash deploy.sh",
-    "remove": "bash remove.sh"
+    "deploy": "serverless deploy -v",
+    "remove": "serverless remove -v"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.409.0",
+    "cookie": "^0.3.1",
+    "crypto-random-string": "^1.0.0"
+  },
+  "devDependencies": {
+    "serverless": "^1.38.0"
   }
 }

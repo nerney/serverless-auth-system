@@ -1,0 +1,75 @@
+service: serverless-auth-system
+# Provider config
+provider:
+  name: AWS
+  runtime: nodejs8.10
+  memorySize: 128
+  timeout: 30
+  logRetentionInDays: 7
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+        - dynamodb:GetItem
+        - dynamodb:DeleteItem
+      Resource: "*"
+
+# FUNCTIONS
+functions:
+  authorizer:
+    handler: auth/authorizer.handler
+  login:
+    handler: auth/login.handler
+    events:
+      - http:
+          path: login
+          method: post
+  signup:
+    handler: auth/signup.handler
+    events:
+      - http:
+          path: signup
+          method: post
+  greetings:
+    handler: pages/greetings.handler
+    events:
+      - http:
+          path: greetings
+          method: get
+
+# DYNAMO TABLES
+#   feel free to provision more throughput
+resources:
+  Resources:
+    sessionTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Delete
+      Properties:
+        TableName: sessions
+        AttributeDefinitions:
+          - AttributeName: session
+            AttributeType: S
+        KeySchema:
+          - AttributeName: session
+            KeyType: HASH
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+    userTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Delete
+      Properties:
+        TableName: users
+        AttributeDefinitions:
+          - AttributeName: username
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
