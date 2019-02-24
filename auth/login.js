@@ -5,37 +5,39 @@ const aws = require("aws-sdk");
 const DYNAMO = new aws.DynamoDB.DocumentClient();
 
 module.exports.handler = async event => {
-  let cookie = "SESSION_COOKIE=NO;";
-  try {
-    let { username, password } = JSON.parse(event.body);
+  let cookie = "SESSION_COOKIE=0;";
 
-    if (username && password) {
+  try {
+    let { email, password } = JSON.parse(event.body);
+
+    if (email && password) {
       let result = await DYNAMO.get({
         TableName: "users",
-        Key: { username: username }
+        Key: { email: email }
       }).promise();
-      console.log(result);
 
       if (result.Item && result.Item.password == password) {
-        console.log("IN IT");
-        let session = random(16);
+        let id = random(24);
         let now = Math.floor(Date.now() / 1000.0);
 
         await DYNAMO.put({
           TableName: "sessions",
           Item: {
-            session: session,
-            ttl: now + 2419200
+            id: id,
+            email: email,
+            ttl: now + 604800
           }
         }).promise();
 
-        cookie = "SESSION_COOKIE=" + session + ";";
+        cookie = "SESSION_COOKIE=" + id + ";";
       }
+    } else {
+      return { statusCode: 400 };
     }
   } catch (err) {
-    console.log("\n" + err);
+    console.log(err);
   }
-  console.log(cookie);
+
   return {
     statusCode: 200,
     headers: {

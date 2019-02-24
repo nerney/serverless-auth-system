@@ -5,12 +5,13 @@ const DYNAMO = new aws.DynamoDB.DocumentClient();
 
 module.exports.handler = async event => {
   try {
-    let { username, password } = JSON.parse(event.body);
-    if (username && password) {
+    let { email, password } = JSON.parse(event.body);
+    if (email && password) {
       let result = await DYNAMO.get({
         TableName: "users",
-        Key: { username: username }
+        Key: { email: email }
       }).promise();
+
       if (result.Item && result.Item.password) {
         return { statusCode: 409 };
       }
@@ -18,7 +19,7 @@ module.exports.handler = async event => {
       await DYNAMO.put({
         TableName: "users",
         Item: {
-          username: username,
+          email: email,
           password: password
         }
       }).promise();
@@ -26,7 +27,7 @@ module.exports.handler = async event => {
       return { statusCode: 400 };
     }
   } catch (err) {
-    console.log("\n" + err);
+    console.log(err);
   }
 
   return { statusCode: 202 };

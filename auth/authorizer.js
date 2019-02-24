@@ -9,13 +9,13 @@ module.exports.handler = async event => {
 
   try {
     let cookie = parseCookie(event.headers.Cookie);
-    if (cookie.SESSION_COOKIE && cookie.SESSION_COOKIE !== "NO") {
+    if (cookie.SESSION_COOKIE) {
       let result = await DYNAMO.get({
         TableName: "sessions",
         Key: { session: cookie.SESSION_COOKIE }
       }).promise();
 
-      if (result.Item) {
+      if (result.Item && result.Item.email) {
         effect = "Allow";
       }
     }
